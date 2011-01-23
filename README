@@ -1,3 +1,5 @@
+Originally released at http://flukes1.com/post/2779013293/ps3
+
 As you may know if you’ve been following my progress, last week I took a short break from Wi-Fi Sync to look at the PS3 and how it works behind the scenes. The PS3 homebrew scene is currently at a point where you can install userland packages, such as FTPDs and SNES emulators, but you still don’t have any access to the hypervisor or GameOS kernel. It’s still very much a closed system.
 
 As an iPhone developer with an app on Cydia, I can see great potential within the PS3. It’s crying out for a decent package manager, but you need OS-level access to do that effectively. Unlocking the PS3 in this way has other benefits too; the system can effectively be modified in any way you wish.

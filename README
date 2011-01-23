@@ -1,0 +1,26 @@
+As you may know if you’ve been following my progress, last week I took a short break from Wi-Fi Sync to look at the PS3 and how it works behind the scenes. The PS3 homebrew scene is currently at a point where you can install userland packages, such as FTPDs and SNES emulators, but you still don’t have any access to the hypervisor or GameOS kernel. It’s still very much a closed system.
+
+As an iPhone developer with an app on Cydia, I can see great potential within the PS3. It’s crying out for a decent package manager, but you need OS-level access to do that effectively. Unlocking the PS3 in this way has other benefits too; the system can effectively be modified in any way you wish.
+
+So today I’m releasing three tools which open the PS3’s hypervisor (lv1) and GameOS (lv2) to full read/write access from packaged userland applications. These tools can be used to create and test lv1/lv2 patches in RAM, which negates the risk of bricking your PS3 by flashing it with an incorrectly patched lv1 or lv2 binary. You can also use the tools to create a patched lv1 or lv2 binary, if you wish, although I suggest thoroughly testing your patches in-memory first.
+
+I will make a few things clear before continuing: I do not condone piracy and these tools DO NOT enable copied games to run on the PS3. Again: these tools will not allow backup managers to suddenly start working on firmware 3.55. The tools are packaged in source code form and do not include any Sony code or other Sony assets such as encryption keys. If you’re not a developer, these tools will be useless to you, so please do not try to use them. They are made available with no implied warranty of fitness for a particular purpose.
+
+Three tools are being made available today:
+
+* resign_self.py. This allows you to automatically replace any segment within a self and re-sign the self so the signatures and hashes are all valid again. Similar to makeself, but it is more suited towards patching lv1 and lv2 (and has been tested for this purpose).
+* insert_lv1_lv2.py. This is just a convenience script I made to take a modified, re-signed lv1.self and lv2_kernel.self, and automatically create a PUP which is identical to an original PUP except for those two files.
+* lv1dumper. This is an application which runs on the PS3 that you can compile and package using PSL1GHT and geohot’s tools. After running it, lv1 will be mapped at 0x8000000014000000 with read/write access, and you will be able to poke lv2 without the system shutting down. It disables the new lv2 memory hashing feature Sony added to 3.55 (probably to stop future USB jailbreaks).
+
+lv1dumper requires that some patches to lv1 and lv2 are already in place. I’ll describe how to add these patches. They have been tested but I cannot guarantee that they won’t brick your PS3. Do not do this unless you’re comfortable with that.
+
+Firstly, you need to extract the decrypted code segments from lv1.self and lv2_kernel.self (just use unself and copy them directly out of the ELF), and make the following changes to to them, assuming you’re using 3.55:
+
+* lv1_undocumented_function_114 in lv1 must be patched so that it can be used to map any area of real memory. graf_chokolo found this trick months ago, but it still applies here. Patch the byte at D5A47 from 00 to 01 (2D5A47 if you’re looking for it in IDA).
+* You then need to add peek and poke to lv2. Patch 1933C to E8 63 00 00 60 00 00 00 and 19348 to F8 83 00 00 60 00 00 00.
+
+You can then use resign_self.py to re-insert your patched code segment back into the self. You’ll firstly need to change a few bytes in some useless strings because of the way zlib deflate works; the script will tell you what to do. I found that changing strings was the easiest way to do this, it just takes a bit of trial and error.
+
+Finally, use insert_lv1_lv2.py to create your modified PUP. You’ll need to update to the PUP, then install geohot’s jailbreak PUP over the top of it. If you’ve done everything right, lv1dumper should just exit after you run it and you’ll have r/w access to lv1 and lv2 (peek and poke). The lv1_peek, lv1_poke, lv2_peek and lv2_poke functions in lv1dumper show how to use that access.
+
+I’m hoping that some interesting and innovative stuff can come out of this, and maybe we can start to see ‘unofficial’ apps enjoying the same success on the PS3 that they do on the iPhone.
